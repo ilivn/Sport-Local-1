@@ -1,0 +1,29 @@
+name: Import des lieux de sport
+
+on:
+  # Lancement à la main : onglet Actions > Import des lieux de sport > Run workflow
+  workflow_dispatch:
+    inputs:
+      zone:
+        description: "Zone(s) à importer, séparées par des « ; » (ex. Lyon; Villeurbanne)"
+        required: true
+  # Mise à jour automatique chaque lundi à 4 h (heure de Paris en été),
+  # pour les zones de la variable IMPORT_ZONES (Settings > Secrets and variables > Actions > Variables)
+  schedule:
+    - cron: "0 2 * * 1"
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Importer les lieux dans Supabase
+        run: node scripts/import-lieux.mjs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ZONES: ${{ github.event.inputs.zone || vars.IMPORT_ZONES }}
