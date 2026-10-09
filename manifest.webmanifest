@@ -1,0 +1,16 @@
+{
+  "name": "Sport local",
+  "short_name": "Sport local",
+  "description": "Lieux de sport, sessions et sportifs autour de vous.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0E4B38",
+  "theme_color": "#0E4B38",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

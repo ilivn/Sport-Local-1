@@ -4,6 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Sport local</title>
+<meta name="description" content="Trouvez où faire du sport près de chez vous, et avec qui : terrains, salles, piscines, pistes, parcours de course et sessions entre sportifs.">
+<meta name="theme-color" content="#0E4B38">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Sport local">
+<meta property="og:description" content="Trouvez où faire du sport près de chez vous, et avec qui.">
+<meta property="og:url" content="https://ilivn.github.io/Sport-Local-1/">
+<meta property="og:image" content="https://ilivn.github.io/Sport-Local-1/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Figtree:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -13,30 +24,39 @@
 <style>
 :root{
   --bg:#F3F4EE; --surface:#FFFFFF; --ink:#12201A; --muted:#55625B; --line:#DDE0D6;
-  --green:#0E4B38; --lime:#C8F03C; --warn:#9A3412;
+  --green:#0E4B38; --lime:#C8F03C; --warn:#9A3412; --link:#0E4B38;
+  --outer:#DADDD2; --warnbg:#FFF3D6; --warnfg:#5B3A00; --onlime:#12201A;
   --display:'Bricolage Grotesque','Trebuchet MS',sans-serif;
   --body:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:light;
 }
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0F1512; --surface:#18221D; --ink:#E6ECE8; --muted:#A2B0A8; --line:#2C3832;
+  --green:#1E7A55; --link:#8EE0B4; --outer:#0A0F0C; --warnbg:#3A2E10; --warnfg:#F5DFA6; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1512; --surface:#18221D; --ink:#E6ECE8; --muted:#A2B0A8; --line:#2C3832;
+  --green:#1E7A55; --link:#8EE0B4; --outer:#0A0F0C; --warnbg:#3A2E10; --warnfg:#F5DFA6; color-scheme:dark}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
-body{background:#DADDD2;color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+body{background:var(--outer);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:3px solid #1F6FEB;outline-offset:2px}
 h1,h2,h3{font-family:var(--display);margin:0;line-height:1.15;text-wrap:balance}
 h1{font-size:26px} h2{font-size:20px} h3{font-size:17px}
-a{color:var(--green);font-weight:600}
+a{color:var(--link);font-weight:600}
+.linkbtn{border:0;background:none;padding:0;color:var(--link);font:inherit;font-weight:600;text-decoration:underline;cursor:pointer}
 #app{position:relative;max-width:480px;height:100%;margin:0 auto;background:var(--bg);display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 40px rgba(18,32,26,.18)}
 .tab{flex:1;min-height:0;overflow-y:auto;display:none;position:relative}
 .tab.on{display:block}
 .pad{padding:20px 16px 28px;display:flex;flex-direction:column;gap:14px}
 #tabbar{display:flex;height:68px;flex-shrink:0;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0)}
 #tabbar button{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:500;color:var(--muted)}
-#tabbar button.on{color:var(--green);font-weight:700}
+#tabbar button.on{color:var(--link);font-weight:700}
 #tabbar svg,.ico{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .btn{min-height:50px;padding:0 18px;border:0;border-radius:14px;background:var(--green);color:#fff;font-weight:700;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
 .btn.alt{background:var(--surface);color:var(--ink);border:2px solid var(--ink)}
-.btn.lime{background:var(--lime);color:var(--ink);border:2px solid var(--ink)}
+.btn.lime{background:var(--lime);color:var(--onlime);border:2px solid var(--onlime)}
 .btn.small{min-height:44px;padding:0 14px;border-radius:12px;font-size:14px}
 .btn[disabled]{opacity:.5;cursor:default}
 .row{display:flex;gap:10px;flex-wrap:wrap}
@@ -51,26 +71,33 @@ button.card,a.card{border:0;text-align:left;text-decoration:none;color:var(--ink
 .chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
 .chips.wrap{flex-wrap:wrap;overflow:visible}
 .chip{flex-shrink:0;min-height:40px;padding:0 14px;border:2px solid var(--line);border-radius:999px;background:var(--surface);font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
-.chip.on{background:var(--lime);border-color:var(--ink)}
+.chip.on{background:var(--lime);border-color:var(--onlime);color:var(--onlime)}
 .tag{display:inline-block;padding:5px 10px;border-radius:999px;background:var(--bg);font-size:13px;font-weight:600}
-.tag.lime{background:var(--lime)}
+.tag.lime{background:var(--lime);color:var(--onlime)}
+.tag.open{background:#D7F5E3;color:#0B4A2C}.tag.closed{background:#FBE1DE;color:#7A1C12}
 .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;border:1.5px solid #fff;box-shadow:0 0 0 1px rgba(18,32,26,.35)}
 .avatar{width:44px;height:44px;border-radius:50%;background:var(--green);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.avatar.big{width:72px;height:72px;font-family:var(--display);font-size:26px;background:var(--lime);color:var(--ink)}
+.avatar.big{width:72px;height:72px;font-family:var(--display);font-size:26px;background:var(--lime);color:var(--onlime)}
 .field{display:flex;flex-direction:column;gap:6px;font-size:14px;font-weight:700}
 .field input,.field textarea,.field select{min-height:48px;padding:10px 14px;border:1px solid var(--line);border-radius:14px;background:var(--surface);font-weight:400;font-size:15px}
 .note{font-size:13px;color:var(--muted)}
-.banner{padding:10px 14px;border-radius:12px;background:#FFF3D6;color:#5B3A00;font-size:13px;font-weight:600}
+.banner{padding:10px 14px;border-radius:12px;background:var(--warnbg);color:var(--warnfg);font-size:13px;font-weight:600}
+.check{display:flex;align-items:center;gap:10px;min-height:44px;font-weight:600}
+.check input{width:22px;height:22px;accent-color:var(--link)}
+.photos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.photos img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;display:block}
+.hero{width:100%;max-height:240px;object-fit:cover;border-radius:16px;display:block}
+.wx{display:flex;gap:10px;align-items:center}
 .seg{display:flex;gap:4px;padding:4px;background:var(--surface);border-radius:14px}
 .seg button{flex:1;min-height:42px;border:0;border-radius:10px;background:none;font-weight:700;font-size:14px}
-.seg button.on{background:var(--ink);color:#fff}
+.seg button.on{background:var(--ink);color:var(--bg)}
 /* carte */
 #tab-map,#tab-routes{overflow:hidden}
 #map,#map2{position:absolute;inset:0;z-index:0;background:#E7EADF}
 .maptop{position:absolute;z-index:500;top:12px;left:12px;right:12px;display:flex;flex-direction:column;gap:8px;pointer-events:none}
 .maptop>*{pointer-events:auto}
 .searchbtn{display:flex;align-items:center;gap:10px;width:100%;min-height:48px;padding:0 14px;border:0;border-radius:14px;background:var(--surface);color:var(--muted);box-shadow:0 2px 10px rgba(18,32,26,.18);text-align:left}
-.searchbtn .ico{color:var(--green);width:20px;height:20px}
+.searchbtn .ico{color:var(--link);width:20px;height:20px}
 .maptop .chip{box-shadow:0 1px 5px rgba(18,32,26,.16)}
 .locate{position:absolute;z-index:500;right:12px;width:48px;height:48px;border:0;border-radius:50%;background:var(--surface);box-shadow:0 2px 10px rgba(18,32,26,.22);display:flex;align-items:center;justify-content:center}
 #sheet{position:absolute;z-index:600;left:0;right:0;bottom:0;max-height:52%;background:var(--surface);border-radius:22px 22px 0 0;box-shadow:0 -6px 20px rgba(18,32,26,.14);display:flex;flex-direction:column}
@@ -103,12 +130,30 @@ button.card,a.card{border:0;text-align:left;text-decoration:none;color:var(--ink
 .send input{flex:1;min-width:0;min-height:48px;padding:0 16px;border:1px solid var(--line);border-radius:999px;background:var(--bg)}
 .send button{width:48px;height:48px;border:0;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 /* accueil position */
-#gate{position:absolute;inset:0;z-index:2000;background:var(--green);color:#fff;display:flex;flex-direction:column;justify-content:center;gap:16px;padding:28px}
+#gate{position:absolute;inset:0;z-index:2000;background:rgba(8,20,14,.42);display:flex;align-items:flex-end;justify-content:center;padding:12px}
 #gate[hidden]{display:none}
-#gate .field input{border:0}
-#toast{position:absolute;z-index:3000;left:16px;right:16px;bottom:84px;padding:12px 16px;border-radius:14px;background:var(--ink);color:#fff;font-weight:600;text-align:center;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none}
+.welcome{background:var(--surface);color:var(--ink);border-radius:24px;padding:22px 20px;width:100%;max-width:460px;max-height:100%;overflow-y:auto;display:flex;flex-direction:column;gap:12px;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-size:20px;font-weight:700}
+.brand svg{width:40px;height:40px;flex-shrink:0}
+.perks{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.perks li{padding-left:22px;position:relative}
+.perks li::before{content:"";position:absolute;left:4px;top:.55em;width:9px;height:9px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 2px var(--green)}
+#toast{position:absolute;z-index:3000;left:16px;right:16px;bottom:84px;padding:12px 16px;border-radius:14px;background:var(--ink);color:var(--bg);font-weight:600;text-align:center;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none}
 #toast.on{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){#toast{transition:none}}
+@media (min-width:900px){
+  #app{max-width:none}
+  #sheet{top:0;bottom:0;left:0;right:auto;width:380px;max-height:none;border-radius:0;box-shadow:2px 0 16px rgba(18,32,26,.14)}
+  #sheet.closed .sheetlist{display:flex}
+  #tab-map .maptop{left:392px;right:12px;max-width:720px}
+  #locate{bottom:24px!important}
+  #routepanel{left:12px;right:auto;bottom:12px;width:380px;border-radius:22px;max-height:calc(100% - 90px)}
+  #tab-routes .maptop{left:404px;max-width:520px}
+  #page{left:auto;width:460px;box-shadow:-6px 0 24px rgba(18,32,26,.18)}
+  .tab>.pad,#tab-profile>div{max-width:760px;margin-left:auto;margin-right:auto}
+  #toast{left:auto;right:24px;width:380px}
+  #gate{align-items:center}
+}
 </style>
 </head>
 <body>
@@ -116,7 +161,7 @@ button.card,a.card{border:0;text-align:left;text-decoration:none;color:var(--ink
   <section class="tab on" id="tab-map">
     <div id="map"></div>
     <div class="maptop">
-      <button class="searchbtn" data-act="assistant"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.800L12 17l-1.800-5.200L5 10l5.200-1.800zM19 16v4M17 18h4"/></svg><span>Demandez à l'assistant : « où faire de la boxe ? »</span></button>
+      <button class="searchbtn" data-act="assistant"><svg class="ico" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.800L12 17l-1.800-5.200L5 10l5.200-1.800zM19 16v4M17 18h4"/></svg><span>Que voulez-vous faire ? Demandez…</span></button>
       <div class="chips" id="groupchips"></div>
     </div>
     <button class="locate" id="locate" data-act="recenter" aria-label="Recentrer sur ma position" style="bottom:calc(52% + 12px)"><svg class="ico" viewBox="0 0 24 24"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zM12 2v3M12 19v3M2 12h3M19 12h3"/></svg></button>
@@ -205,19 +250,20 @@ const S = {
 // =====================================================================
 // 1. POSITION
 // =====================================================================
+const LOGO = '<svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="16" fill="#0E4B38"/><path d="M32 10c-9.4 0-17 7.4-17 16.6C15 39 32 54 32 54s17-15 17-27.4C49 17.4 41.4 10 32 10z" fill="#C8F03C"/><circle cx="32" cy="27" r="7" fill="#0E4B38"/></svg>';
 function showGate(msg) {
   const g = $('#gate');
   g.hidden = false;
-  g.innerHTML = `
-    <div class="avatar big">${ico('map')}</div>
-    <h1 style="font-size:30px">Sport local a besoin de votre position</h1>
-    <div>Elle sert à afficher la carte, les lieux de sport, les parcours et les réponses de l'assistant autour de l'endroit où vous êtes. Elle reste sur cet appareil.</div>
+  g.innerHTML = `<div class="welcome" role="dialog" aria-label="Bienvenue sur Sport local">
+    <div class="brand">${LOGO}<span>Sport local</span></div>
+    <h1>Trouvez où faire du sport, et avec qui.</h1>
+    <ul class="perks"><li>Terrains, salles, piscines, pistes et magasins autour de vous</li><li>Des sessions pour jouer ou courir à plusieurs</li><li>Des parcours de course générés depuis votre position</li></ul>
     ${msg ? `<div class="banner">${esc(msg)}</div>` : ''}
-    <button class="btn lime" data-act="geo-allow">Autoriser ma position</button>
-    <form data-form="geo-city" style="display:flex;flex-direction:column;gap:10px">
-      <label class="field">Ou indiquez une ville<input id="gate-city" name="city" type="text" placeholder="Lyon, Marseille, Lille…" autocomplete="off"></label>
-      <button class="btn alt" type="submit">Utiliser cette ville</button>
-    </form>`;
+    <button class="btn lime" data-act="geo-allow">Me localiser</button>
+    <form data-form="geo-city" class="send"><input id="gate-city" name="city" type="text" placeholder="Ou tapez une ville : Lyon, Lille…" aria-label="Ville" autocomplete="off"><button type="submit" aria-label="Utiliser cette ville">${ico('next')}</button></form>
+    <button class="btn alt small" data-act="explore">Explorer sans me localiser</button>
+    <div class="note">Votre position sert seulement à chercher autour de vous. Elle n'est ni enregistrée ni partagée.</div>
+  </div>`;
 }
 let watchId = null;
 function startGeo() {
@@ -314,7 +360,7 @@ function parsePlace(el) {
   if (kind === 'pitch' && sports.length) label = 'Terrain de ' + sports[0].toLowerCase();
   const street = [t['addr:housenumber'], t['addr:street']].filter(Boolean).join(' ');
   return {
-    id: el.type[0] + el.id, osm: el.type + '/' + el.id, lat, lon, kind, group, label,
+    id: (el.type === 'user' ? 'u' : el.type[0]) + el.id, osm: el.type + '/' + el.id, lat, lon, kind, group, label,
     name: t.name || label, named: !!t.name, sports, sportKeys,
     free: t.fee === 'no' ? true : (t.fee === 'yes' ? false : null),
     lit: t.lit === 'yes', indoor: t.indoor === 'yes' || t.covered === 'yes' || ['sports_hall', 'fitness_centre', 'dojo', 'bowling_alley', 'dance'].includes(kind),
@@ -322,7 +368,8 @@ function parsePlace(el) {
     website: t.website || t['contact:website'] || '', phone: t.phone || t['contact:phone'] || '',
     address: [street, t['addr:postcode'], t['addr:city']].filter(Boolean).join(', '),
     dist: S.pos ? haversine(S.pos, { lat, lon }) : null,
-    dbId: el.dbId || null
+    dbId: el.dbId || null, userSpot: el.type === 'user',
+    wheelchair: t.wheelchair === 'yes' || t.wheelchair === 'limited'
   };
 }
 const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
@@ -390,26 +437,32 @@ async function loadPlaces() {
     if (Date.now() - cached.at < 6 * 3600e3) return;          // assez récent : pas besoin de recharger
   }
   S.loading = true; S.loadError = ''; S.loadAttempt = 1; renderSheet();
-  // 1) Lieux importés dans la base de l'appli : réponse immédiate.
+  // 1) Lieux de la base de l'appli (importés + proposés par les membres).
+  let rows = null;
   if (sb) {
-    try {
-      const rows = await q(sb.rpc('osm_spots_near', { p_lat: center.lat, p_lng: center.lon, p_radius_m: radius }));
-      if (rows && rows.length) {
-        const places = cleanPlaces(rows.map(r => { const ref = String(r.source_ref || '').split('/'); return { type: ref[0] || 'node', id: ref[1] || r.id, lat: r.lat, lon: r.lng, tags: r.tags || {}, dbId: r.id }; }));
-        S.loading = false;
-        applyPlaces(places, center);
-        return;
-      }
-    } catch (e) { /* base injoignable : on passe à OpenStreetMap */ }
+    try { rows = await q(sb.rpc('places_near', { p_lat: center.lat, p_lng: center.lon, p_radius_m: radius })); }
+    catch (e) { try { rows = await q(sb.rpc('osm_spots_near', { p_lat: center.lat, p_lng: center.lon, p_radius_m: radius })); } catch (e2) { rows = null; } }
   }
-  // 2) Sinon, recherche en direct sur OpenStreetMap.
+  const toEl = r => {
+    if (r.source === 'user') return { type: 'user', id: r.id, lat: r.lat, lon: r.lng, tags: r.tags || {}, dbId: r.id };
+    const ref = String(r.source_ref || '').split('/');
+    return { type: ref[0] || 'node', id: ref[1] || r.id, lat: r.lat, lon: r.lng, tags: r.tags || {}, dbId: r.id };
+  };
+  const userEls = (rows || []).filter(r => r.source === 'user').map(toEl);
+  const osmRows = (rows || []).filter(r => (r.source || 'osm') === 'osm');
+  if (osmRows.length) {
+    S.loading = false;
+    applyPlaces(cleanPlaces(osmRows.map(toEl).concat(userEls)), center);
+    return;
+  }
+  // 2) Sinon, recherche en direct sur OpenStreetMap (+ lieux proposés par les membres).
   const data = await fetchOverpass(overpassQuery(center.lat, center.lon, radius));
   S.loading = false;
   if (!data) {
     if (!S.places.length) S.loadError = 'Les serveurs de cartes sont saturés pour le moment. Réessayez dans une minute.';
     renderSheet(); return;
   }
-  const places = cleanPlaces(data.elements);
+  const places = cleanPlaces(data.elements.concat(userEls));
   const keep = readCache().filter(c => !(c.radius === radius && haversine(c, center) < 300)).slice(0, 2);
   writeCache([{ lat: center.lat, lon: center.lon, radius, at: Date.now(), places: places.map(p => Object.assign({}, p, { dist: null })) }].concat(keep));
   applyPlaces(places, center);
@@ -429,15 +482,16 @@ function humanHours(h) {
 }
 const placeById = id => S.places.find(p => p.id === id);
 const PRACTICE = new Set(['terrain', 'salle', 'course', 'eau', 'plein', 'club']);
-const visiblePlaces = () => S.group === 'all' ? S.places.filter(p => PRACTICE.has(p.group)) : S.places.filter(p => p.group === S.group);
+const visiblePlaces = () => (S.group === 'all' ? S.places.filter(p => PRACTICE.has(p.group)) : S.places.filter(p => p.group === S.group)).filter(passFilters);
 function placeMeta(p) {
   const bits = [p.named ? p.label : (p.sports.slice(0, 2).join(', ') || p.label)];
   if (p.named && p.sports.length) bits.push(p.sports.slice(0, 2).join(', '));
   if (p.count) bits.push(p.count + ' côte à côte');
+  const o = openLabel(p); if (o) bits.push(o.toLowerCase());
   if (p.dist != null) bits.push(fmtDist(p.dist));
   return bits.join(' · ');
 }
-const placeItem = (p, extra) => `<button class="item" data-act="place" data-id="${p.id}"><span class="dot" style="background:${groupColor(p.group)}"></span><span class="grow"><div class="t">${esc(p.name)}</div><div class="s">${esc(placeMeta(p))}</div>${extra ? `<div class="s" style="color:var(--green);font-weight:600">${esc(extra)}</div>` : ''}</span>${ico('next')}</button>`;
+const placeItem = (p, extra) => `<button class="item" data-act="place" data-id="${p.id}"><span class="dot" style="background:${groupColor(p.group)}"></span><span class="grow"><div class="t">${esc(p.name)}</div><div class="s">${esc(placeMeta(p))}</div>${extra ? `<div class="s" style="color:var(--link);font-weight:600">${esc(extra)}</div>` : ''}</span>${ico('next')}</button>`;
 
 // =====================================================================
 // 3. CARTE
@@ -479,7 +533,8 @@ function drawPlaces() {
   if (placeLayer.addLayers) placeLayer.addLayers(markers); else markers.forEach(m => m.addTo(placeLayer));
 }
 function renderChips() {
-  $('#groupchips').innerHTML = GROUPS.map(g => `<button class="chip${S.group === g[0] ? ' on' : ''}" data-act="group" data-id="${g[0]}">${g[0] === 'all' ? '' : `<span class="dot" style="background:${g[2]}"></span>`}${g[1]}</button>`).join('');
+  const nf = activeFilters();
+  $('#groupchips').innerHTML = `<button class="chip${nf ? ' on' : ''}" data-act="filters"><svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>Filtres${nf ? ' (' + nf + ')' : ''}</button>` + GROUPS.map(g => `<button class="chip${S.group === g[0] ? ' on' : ''}" data-act="group" data-id="${g[0]}">${g[0] === 'all' ? '' : `<span class="dot" style="background:${g[2]}"></span>`}${g[1]}</button>`).join('');
 }
 function renderSheet() {
   const list = visiblePlaces(), sh = $('#sheet');
@@ -491,7 +546,8 @@ function renderSheet() {
   if (S.loading && !list.length) body = `<div class="note" style="padding:8px 4px">Chargement des lieux de sport…${S.loadAttempt > 1 ? ' Serveurs chargés, nouvel essai (' + S.loadAttempt + ' sur 4).' : ' Cela peut prendre une quinzaine de secondes.'}</div>`;
   else if (S.loadError) body = `<div class="banner">${esc(S.loadError)}</div><button class="btn small" data-act="reload">Réessayer</button>`;
   else if (!list.length) body = `<div class="note" style="padding:8px 4px">Aucun lieu de ce type dans un rayon de ${fmtDist(db.settings.radius)}.</div><button class="btn small alt" data-act="widen">Élargir la recherche</button>`;
-  else body = updating + list.slice(0, 40).map(p => placeItem(p)).join('');
+  else body = updating + list.slice(0, 60).map(p => placeItem(p)).join('');
+  body += '<button class="btn alt small" data-act="propose">Proposer un lieu manquant</button>';
   sh.innerHTML = `<button class="sheethead" data-act="sheet" aria-expanded="${S.sheetOpen}"><span><h2>${list.length} ${S.group === 'all' ? 'lieu' + (list.length > 1 ? 'x' : '') + ' pour pratiquer' : esc((GROUPS.find(g => g[0] === S.group) || GROUPS[0])[1].toLowerCase())}</h2><span class="s">${esc(where)} · rayon ${fmtDist(db.settings.radius)}</span></span><span class="tag">${S.sheetOpen ? 'Réduire' : 'Voir la liste'}</span></button><div class="sheetlist">${body}</div>`;
 }
 
@@ -619,7 +675,7 @@ async function ask(q) {
 function richText(t) {
   return esc(t).replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/^#+\s*(.+)$/gm, '<b>$1</b>').replace(/\n/g, '<br>');
 }
-const gmapsSearch = q => `https://www.google.com/maps/search/${encodeURIComponent(q)}/@${S.pos.lat},${S.pos.lon},14z`;
+const gmapsSearch = q => `https://www.google.com/maps/search/${encodeURIComponent(q)}` + (S.pos ? `/@${S.pos.lat},${S.pos.lon},14z` : '');
 const webSearch = q => 'https://www.google.com/search?q=' + encodeURIComponent(q + (S.city ? ' ' + S.city : ''));
 function pageAssistant() {
   const examples = ['Où faire de la boxe près d\'ici ?', 'Un terrain de foot gratuit', 'Une piscine couverte', 'Où courir ce soir sur une piste éclairée ?', 'Un magasin pour acheter des chaussures de running', 'Un club de judo'];
@@ -651,23 +707,33 @@ function pagePlace(a) {
   const tags = [p.label].concat(p.sports);
   if (p.free === true) tags.push('Gratuit'); if (p.free === false) tags.push('Payant');
   if (p.lit) tags.push('Éclairé'); if (p.indoor) tags.push('Couvert');
+  if (p.wheelchair) tags.push('Accessible en fauteuil');
   if (p.access === 'customers') tags.push('Réservé aux clients'); if (['yes', 'public', 'permissive'].includes(p.access)) tags.push('Ouvert au public');
-  const walk = Math.max(1, Math.round(p.dist * 1.3 / 80));
-  const rows = [['Adresse', p.address], ['Horaires', humanHours(p.hours)], ['Surface', p.surface], ['Téléphone', p.phone]].filter(r => r[1]).map(r => `<div class="card"><div class="label">${r[0]}</div><div class="hours">${esc(r[1])}</div></div>`).join('');
-  const fav = !!db.favs[p.id];
+  const open = openState(p.hours);
+  const walk = p.dist != null ? Math.max(1, Math.round(p.dist * 1.3 / 80)) : null;
+  const rows = [['Adresse', p.address], ['Horaires', humanHours(p.hours)], ['Revêtement', surfaceFr(p.surface)], ['Téléphone', p.phone]].filter(r => r[1]).map(r => `<div class="card"><div class="label">${r[0]}</div><div class="hours">${esc(r[1])}</div></div>`).join('');
+  const fav = !!favs()[p.id];
   const here = (S.events || []).filter(e => haversine(p, { lat: e.lat, lon: e.lng }) < 150);
+  const wx = need(a, 'wx', () => weather(p.lat, p.lon));
+  const sp = a.spot && !a.spot.error ? a.spot : null;
+  const hero = sp && sp.photos.length ? `<img class="hero" src="${esc(publicUrl('spot-photos', sp.photos[0].storage_path))}" alt="Photo de ${esc(p.name)}">` : '';
+  const dest = `${p.lat},${p.lon}`, origin = S.pos ? `&origin=${S.pos.lat},${S.pos.lon}` : '';
   return {
     title: p.label,
     body: `<div class="pad">
-      <div><div class="label" style="color:var(--green)">${esc(fmtDist(p.dist))} · environ ${walk} min à pied</div><h1 style="margin-top:6px">${esc(p.name)}</h1></div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px">${tags.map(t => `<span class="tag" style="background:var(--surface)">${esc(t)}</span>`).join('')}</div>
-      <div class="row"><a class="btn" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&origin=${S.pos.lat},${S.pos.lon}&destination=${p.lat},${p.lon}&travelmode=walking">Itinéraire</a><button class="btn alt" data-act="fav" data-id="${p.id}">${fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}</button></div>
+      ${hero}
+      <div><div class="label" style="color:var(--link)">${p.dist != null ? esc(fmtDist(p.dist)) + ' · environ ' + walk + ' min à pied' : esc(p.label)}</div><h1 style="margin-top:6px">${esc(p.name)}</h1>${p.userSpot ? '<div class="s">Proposé par un membre</div>' : ''}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">${open === true ? '<span class="tag open">Ouvert maintenant</span>' : open === false ? '<span class="tag closed">Fermé actuellement</span>' : ''}${tags.map(t => `<span class="tag" style="background:var(--surface)">${esc(t)}</span>`).join('')}</div>
+      <div class="row"><a class="btn" target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1${origin}&destination=${dest}&travelmode=walking">Itinéraire</a><button class="btn alt" data-act="fav" data-id="${p.id}">${fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}</button></div>
+      <button class="btn alt small" data-act="share-place" data-id="${p.id}">Partager ce lieu</button>
+      ${wx && !wx.error ? `<div class="card wx"><div><div class="label">Météo maintenant</div><div class="t">${esc(wxNowText(wx))}</div></div></div>` : ''}
       ${rows || '<div class="note">OpenStreetMap ne donne pas encore d\'horaires ni d\'adresse pour ce lieu.</div>'}
-      ${p.website ? `<a class="card" target="_blank" rel="noopener" href="${esc(/^https?:/.test(p.website) ? p.website : 'https://' + p.website)}"><div class="label">Site web</div><div style="color:var(--green);font-weight:600">${esc(p.website)}</div></a>` : ''}
+      ${p.website ? `<a class="card" target="_blank" rel="noopener" href="${esc(/^https?:/.test(p.website) ? p.website : 'https://' + p.website)}"><div class="label">Site web</div><div style="color:var(--link);font-weight:600">${esc(p.website)}</div></a>` : ''}
+      ${spotSection(p, a)}
       <h3>Sessions ici</h3>
-      ${here.length ? here.map(eventItem).join('') : `<div class="note">${S.user ? 'Aucune session prévue à cet endroit.' : 'Connectez-vous pour voir les sessions prévues ici.'}</div>`}
+      ${here.length ? here.map(eventItem).join('') : '<div class="note">Aucune session prévue à cet endroit.</div>'}
       <button class="btn lime" data-act="new-session" data-id="${p.id}">Créer une session ici</button>
-      <div class="note">Données : <a target="_blank" rel="noopener" href="https://www.openstreetmap.org/${p.osm}">fiche OpenStreetMap</a> · <a target="_blank" rel="noopener" href="${esc(gmapsSearch(p.name))}">voir sur Google Maps</a></div>
+      <div class="note">${p.userSpot ? '' : `Données : <a target="_blank" rel="noopener" href="https://www.openstreetmap.org/${p.osm}">fiche OpenStreetMap</a> · `}<a target="_blank" rel="noopener" href="${esc(gmapsSearch(p.name))}">voir sur Google Maps</a> · <button class="linkbtn" data-act="report-spot" data-id="${p.id}">signaler une erreur</button></div>
     </div>`
   };
 }
@@ -707,7 +773,7 @@ async function loadSports() { if (sb && !S.sports.length) S.sports = await q(sb.
 async function loadMe() {
   if (!S.user) { S.me = null; return; }
   const [p, sp] = await Promise.all([
-    q(sb.from('profiles').select('id,username,display_name,city,bio,availability').eq('id', S.user.id).single()),
+    q(sb.from('profiles').select('id,username,display_name,city,bio,availability,avatar_url').eq('id', S.user.id).single()),
     q(sb.from('profile_sports').select('sport_id,level').eq('profile_id', S.user.id))
   ]);
   const days = p.availability && Array.isArray(p.availability.days) ? p.availability.days : [0, 0, 0, 0, 0, 0, 0];
@@ -735,10 +801,13 @@ async function setSession(session) {
   if (!S.user && liveChannel) { sb.removeChannel(liveChannel); liveChannel = null; }
   if (S.user) {
     await act(async () => { await loadSports(); await loadMe(); });
-    subscribeLive(); refreshConvs();
+    subscribeLive(); refreshConvs(); loadAccountFavs();
     if (S.me && (!S.me.display_name || /^user_[0-9a-f]{20}$/.test(S.me.username))) { toast('Bienvenue ! Choisissez votre pseudo et vos sports.'); openEditProfile(); }
   }
+  if (!S.user) S.accFavs = null;
+  S.events = null;
   renderTabbar(); refreshTab();
+  if (S.stack.length) reloadTop();
 }
 async function refreshConvs() {
   if (!S.user) return;
@@ -828,20 +897,24 @@ function pageNewPass() {
 // =====================================================================
 const fmtWhen = iso => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) + ' · ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); };
 async function loadEvents(force) {
-  if (!S.user || !S.pos) return;
+  if (!sb || !S.pos) return;
   if (S.events && !force && Date.now() - S.eventsAt < 60000) return;
-  const r = await act(() => q(sb.rpc('events_nearby', { p_lat: S.pos.lat, p_lng: S.pos.lon, p_radius_m: Math.max(db.settings.radius, 10000) })));
-  if (r) { S.events = r; S.eventsAt = Date.now(); if (S.tab === 'sessions') renderSessions(); }
+  try {
+    S.events = await q(sb.rpc('events_nearby', { p_lat: S.pos.lat, p_lng: S.pos.lon, p_radius_m: Math.max(db.settings.radius, 10000) }));
+  } catch (e) { S.events = []; S.eventsError = S.user ? errMsg(e) : 'Connectez-vous pour voir les sessions.'; }
+  S.eventsAt = Date.now();
+  if (S.tab === 'sessions') renderSessions();
 }
-const eventItem = e => `<button class="item" data-act="event" data-id="${e.id}"><span class="grow"><div class="t">${esc(e.title)}</div><div class="s">${esc(fmtWhen(e.starts_at))}</div><div class="s">${esc(e.sport_name)} · ${esc(e.place_name || '')}${e.distance_m != null ? ' · ' + fmtDist(e.distance_m) : ''}</div><div class="s" style="font-weight:700;color:var(--green)">${e.participants_count} / ${e.max_participants} participants${e.joined ? ' · vous participez' : ''}</div></span>${ico('next')}</button>`;
+const eventItem = e => `<button class="item" data-act="event" data-id="${e.id}"><span class="grow"><div class="t">${esc(e.title)}</div><div class="s">${esc(fmtWhen(e.starts_at))}</div><div class="s">${esc(e.sport_name)} · ${esc(e.place_name || '')}${e.distance_m != null ? ' · ' + fmtDist(e.distance_m) : ''}</div><div class="s" style="font-weight:700;color:var(--link)">${e.participants_count} / ${e.max_participants} participants${e.joined ? ' · vous participez' : ''}</div></span>${ico('next')}</button>`;
 function renderSessions() {
   const el = $('#tab-sessions');
-  if (!S.user) { el.innerHTML = `<div class="pad"><h1>Sessions</h1>${loginCard('Connectez-vous pour voir les sessions près de chez vous et en proposer.')}</div>`; return; }
-  if (!S.pos) { el.innerHTML = '<div class="pad"><h1>Sessions</h1><div class="note">En attente de votre position…</div></div>'; return; }
+  if (!S.pos) { el.innerHTML = '<div class="pad"><h1>Sessions</h1><div class="note">Choisissez d\'abord une position ou une ville sur la carte.</div></div>'; return; }
   if (!S.events) { loadEvents(); el.innerHTML = '<div class="pad"><h1>Sessions près de vous</h1><div class="note">Chargement…</div></div>'; return; }
   const mine = S.events.filter(e => e.joined), others = S.events.filter(e => !e.joined);
   el.innerHTML = `<div class="pad"><h1>Sessions près de vous</h1>
     <div class="s">Dans un rayon de ${fmtDist(Math.max(db.settings.radius, 10000))}, sur les 30 prochains jours.</div>
+    ${!S.user ? loginCard('Créez un compte pour rejoindre une session ou proposer la vôtre.') : ''}
+    ${S.eventsError && !S.events.length ? `<div class="note">${esc(S.eventsError)}</div>` : ''}
     ${mine.length ? '<h3>Mes sessions</h3>' + mine.map(eventItem).join('') : ''}
     <h3>${mine.length ? 'Autres sessions' : 'À rejoindre'}</h3>
     ${others.length ? others.map(eventItem).join('') : '<div class="card"><div class="t">Aucune autre session pour l\'instant</div><div class="s">Proposez la première : choisissez un lieu sur la carte, puis « Créer une session ici ».</div></div>'}
@@ -886,35 +959,61 @@ async function submitSession(f) {
   S.events = null; S.stack.pop(); openPage('event', { id: ev.id }); toast('Session publiée');
 }
 async function loadEvent(id) {
-  const ev = await q(sb.from('events').select('id,title,description,starts_at,level,max_participants,status,organizer_id,place_name,spot_id,sport_id').eq('id', id).single());
-  const parts = await q(sb.from('event_participants').select('user_id').eq('event_id', id));
-  await namesFor(parts.map(x => x.user_id).concat(ev.organizer_id));
-  return Object.assign(ev, { parts: parts.map(x => x.user_id) });
+  let ev;
+  try {
+    const rows = await q(sb.rpc('event_public', { p_id: id }));
+    ev = rows && rows[0];
+    if (!ev) throw new Error('Cette session n\'existe plus ou a été annulée.');
+  } catch (e) {
+    if (!S.user || /n'existe plus/.test(e.message)) throw e;
+    // Ancienne base (mise-a-jour-2.sql non exécuté) : lecture directe.
+    ev = await q(sb.from('events').select('id,title,description,starts_at,level,max_participants,status,organizer_id,place_name,sport_id').eq('id', id).single());
+    ev.sport_name = sportName(ev.sport_id);
+  }
+  let parts = [];
+  if (S.user) {
+    parts = (await q(sb.from('event_participants').select('user_id').eq('event_id', id))).map(x => x.user_id);
+    await namesFor(parts.concat(ev.organizer_id));
+    ev.joined = parts.includes(S.user.id);
+    ev.participants_count = parts.length;
+  }
+  return Object.assign(ev, { parts });
 }
 function pageEvent(a) {
-  if (!S.user) return { title: 'Session', body: `<div class="pad">${loginCard('Connectez-vous pour voir cette session.')}</div>` };
+  if (!sb) return { title: 'Session', body: `<div class="pad">${loginCard('')}</div>` };
   const ev = need(a, 'ev', () => loadEvent(a.id));
   if (!ev) return { title: 'Session', body: LOADING };
   if (ev.error) return { title: 'Session', body: failed(ev) };
-  const mine = ev.organizer_id === S.user.id, joined = ev.parts.includes(S.user.id), full = ev.parts.length >= ev.max_participants;
+  const me = S.user ? S.user.id : null;
+  const mine = me && ev.organizer_id === me, joined = !!ev.joined, count = ev.participants_count || ev.parts.length;
+  const full = count >= ev.max_participants || ev.status === 'complet';
   const friends = (S.friends || []).filter(f => f.friend === 'ami');
   if (joined && !S.friends) loadFriends();
+  const soon = new Date(ev.starts_at) - Date.now() < 6.5 * 864e5;
+  const wx = ev.lat != null && soon ? need(a, 'wx', () => weather(ev.lat, ev.lng)) : null;
+  const wxText = wx && !wx.error ? wxAtText(wx, ev.starts_at) : '';
   let main;
-  if (mine) main = `<button class="btn alt" data-act="event-cancel" data-id="${ev.id}">${a.sure ? 'Confirmer l\'annulation' : 'Annuler la session'}</button>`;
+  if (!me) main = loginCard('Créez un compte pour rejoindre cette session.');
+  else if (mine) main = `<button class="btn alt" data-act="event-cancel" data-id="${ev.id}">${a.sure ? 'Confirmer l\'annulation' : 'Annuler la session'}</button>`;
   else if (joined) main = `<button class="btn alt" data-act="event-leave" data-id="${ev.id}">Quitter la session</button>`;
-  else if (full || ev.status !== 'ouvert') main = '<button class="btn" disabled>Session complète</button>';
+  else if (ev.waiting) main = `<div class="note">Vous êtes sur la liste d'attente : vous prendrez automatiquement la première place libérée.</div><button class="btn alt" data-act="waitlist-leave" data-id="${ev.id}">Quitter la liste d'attente</button>`;
+  else if (full) main = `<button class="btn" data-act="waitlist-join" data-id="${ev.id}">Session complète : rejoindre la liste d'attente${ev.waitlist_count ? ' (' + ev.waitlist_count + ' en attente)' : ''}</button>`;
   else main = `<button class="btn" data-act="event-join" data-id="${ev.id}">Rejoindre la session</button>`;
+  const people = me ? ev.parts.map(uid => `<button class="item" data-act="${uid === me ? 'tab' : 'member'}" data-id="${uid === me ? 'profile' : uid}"><span class="avatar">${initials(S.names[uid])}</span><span class="grow"><div class="t">${esc(S.names[uid] || 'Membre')}${uid === me ? ' (vous)' : ''}</div><div class="s">${uid === ev.organizer_id ? 'Organise la session' : 'Participe'}</div></span>${ico('next')}</button>`).join('')
+    : `<div class="note">Organisée par ${esc(ev.organizer_name || 'un membre')}.</div>`;
   return {
     title: 'Session',
     body: `<div class="pad">
-      <div><div class="label" style="color:var(--green)">${esc(fmtWhen(ev.starts_at))}</div><h1 style="margin-top:6px">${esc(ev.title)}</h1>
-      <div class="s">${esc(sportName(ev.sport_id))} · ${LEVELS[levelIndex(ev.level)]} · ${ev.parts.length} / ${ev.max_participants} participants</div></div>
-      ${ev.place_name ? `<div class="card"><div class="label">Lieu</div><div class="t">${esc(ev.place_name)}</div></div>` : ''}
+      <div><div class="label" style="color:var(--link)">${esc(fmtWhen(ev.starts_at))}</div><h1 style="margin-top:6px">${esc(ev.title)}</h1>
+      <div class="s">${esc(ev.sport_name || sportName(ev.sport_id))} · ${LEVELS[levelIndex(ev.level)]} · ${count} / ${ev.max_participants} participants</div></div>
+      ${ev.place_name ? `<div class="card"><div class="label">Lieu</div><div class="t">${esc(ev.place_name)}</div>${ev.lat != null ? `<a target="_blank" rel="noopener" href="https://www.google.com/maps/dir/?api=1&destination=${ev.lat},${ev.lng}&travelmode=walking">Itinéraire</a>` : ''}</div>` : ''}
+      ${wxText ? `<div class="card"><div class="label">Météo prévue à l'heure de la session</div><div class="t">${esc(wxText)}</div></div>` : ''}
       ${ev.description ? `<div class="card"><div class="label">Détails</div><div class="hours">${esc(ev.description)}</div></div>` : ''}
       <h3>Participants</h3>
-      ${ev.parts.map(uid => `<button class="item" data-act="${uid === S.user.id ? 'tab' : 'member'}" data-id="${uid === S.user.id ? 'profile' : uid}"><span class="avatar">${initials(S.names[uid])}</span><span class="grow"><div class="t">${esc(S.names[uid] || 'Membre')}${uid === S.user.id ? ' (vous)' : ''}</div><div class="s">${uid === ev.organizer_id ? 'Organise la session' : 'Participe'}</div></span>${ico('next')}</button>`).join('')}
+      ${people}
       ${joined ? `<button class="btn lime" data-act="event-chat" data-id="${ev.id}">Ouvrir la discussion du groupe</button>` : ''}
       ${main}
+      <button class="btn alt small" data-act="share-event" data-id="${ev.id}">Partager cette session</button>
       ${joined && friends.length ? '<h3>Inviter un ami</h3>' + friends.filter(f => !ev.parts.includes(f.id)).map(f => `<button class="item" data-act="invite" data-id="${f.id}" data-event="${ev.id}"><span class="avatar">${initials(personName(f))}</span><span class="grow"><div class="t">${esc(personName(f))}</div><div class="s">Envoyer l'invitation par message</div></span>${ico('next')}</button>`).join('') : ''}
     </div>`
   };
@@ -972,7 +1071,7 @@ function onSearchInput(v) {
 }
 async function loadMember(id) {
   const [p, sp, fr] = await Promise.all([
-    q(sb.from('profiles').select('id,username,display_name,city,bio,availability').eq('id', id).single()),
+    q(sb.from('profiles').select('id,username,display_name,city,bio,availability,avatar_url').eq('id', id).single()),
     q(sb.from('profile_sports').select('sport_id,level').eq('profile_id', id)),
     q(sb.from('friendships').select('requester_id,addressee_id,status').or(`and(requester_id.eq.${S.user.id},addressee_id.eq.${id}),and(requester_id.eq.${id},addressee_id.eq.${S.user.id})`))
   ]);
@@ -992,7 +1091,7 @@ function pageMember(a) {
   const dispo = p.dispo && p.dispo.some(Boolean) ? DAYS.map((d, i) => p.dispo[i] ? d + ' ' + SLOTS[p.dispo[i]] : '').filter(Boolean).join(', ') : '';
   return {
     title: 'Profil',
-    body: `<div class="pad"><div style="display:flex;align-items:center;gap:16px"><span class="avatar big">${initials(personName(p))}</span><div style="min-width:0"><h1>${esc(personName(p))}</h1><div class="s">@${esc(p.username)}${p.city ? ' · ' + esc(p.city) : ''}${p.friend === 'ami' ? ' · ami' : ''}</div></div></div>
+    body: `<div class="pad"><div style="display:flex;align-items:center;gap:16px">${avatarHtml(personName(p), p.avatar_url, true)}<div style="min-width:0"><h1>${esc(personName(p))}</h1><div class="s">@${esc(p.username)}${p.city ? ' · ' + esc(p.city) : ''}${p.friend === 'ami' ? ' · ami' : ''}</div></div></div>
       ${p.bio ? `<div>${esc(p.bio)}</div>` : ''}
       <div class="card"><div class="label">Sports pratiqués</div>${p.sports.length ? p.sports.map(s => `<div><b>${esc(s.name)}</b> · ${LEVELS[s.level]}</div>`).join('') : '<div class="s">Non renseignés</div>'}</div>
       ${dispo ? `<div class="card"><div class="label">Disponibilités</div><div>${esc(dispo)}</div></div>` : ''}
@@ -1014,7 +1113,7 @@ async function loadChat(id) {
   return { conv, title, other, msgs: msgs.reverse() };
 }
 function chatHtml(a) {
-  return a.msgs.length ? a.msgs.map(m => { const me = m.sender_id === S.user.id; return `<div class="bubble${me ? ' me' : ''}">${!me && a.meta.conv.kind === 'event' ? `<div style="font-size:12px;font-weight:700;color:var(--green)">${esc(S.names[m.sender_id] || 'Membre')}</div>` : ''}${esc(m.content)}<div style="font-size:11px;opacity:.7;margin-top:4px">${new Date(m.created_at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</div></div>`; }).join('')
+  return a.msgs.length ? a.msgs.map(m => { const me = m.sender_id === S.user.id; return `<div class="bubble${me ? ' me' : ''}">${!me && a.meta.conv.kind === 'event' ? `<div style="font-size:12px;font-weight:700;color:var(--link)">${esc(S.names[m.sender_id] || 'Membre')}</div>` : ''}${esc(m.content)}<div style="font-size:11px;opacity:.7;margin-top:4px">${new Date(m.created_at).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</div></div>`; }).join('')
     : '<div class="note" style="align-self:center">Écrivez le premier message.</div>';
 }
 function paintChat(a) {
@@ -1045,7 +1144,9 @@ async function openDirect(userId) {
   return id;
 }
 function pageReport(a) {
-  return { title: 'Signaler', body: `<form class="pad" data-form="report" data-id="${esc(a.id)}"><div>Expliquez en quelques mots ce qui pose problème. Votre signalement reste anonyme pour la personne concernée.</div><label class="field">Motif<textarea id="rp-reason" name="reason" rows="5" required minlength="3" maxlength="1000"></textarea></label><button class="btn" type="submit">Envoyer le signalement</button></form>` };
+  if (!S.user) return { title: 'Signaler', body: `<div class="pad">${loginCard('Connectez-vous pour envoyer un signalement.')}</div>` };
+  const spot = a.type === 'spot';
+  return { title: spot ? 'Signaler une erreur' : 'Signaler', body: `<form class="pad" data-form="report" data-id="${esc(a.id)}" data-type="${spot ? 'spot' : 'profile'}"><div>${spot ? 'Lieu fermé, mauvais emplacement, informations fausses, doublon… Dites-nous ce qui ne va pas.' : 'Expliquez en quelques mots ce qui pose problème. Votre signalement reste anonyme pour la personne concernée.'}</div><label class="field">Motif<textarea id="rp-reason" name="reason" rows="5" required minlength="3" maxlength="1000"></textarea></label><button class="btn" type="submit">Envoyer le signalement</button></form>` };
 }
 
 // =====================================================================
@@ -1053,12 +1154,12 @@ function pageReport(a) {
 // =====================================================================
 function renderProfile() {
   const el = $('#tab-profile');
-  if (!S.user) { el.innerHTML = `<div class="pad"><h1>Profil</h1>${loginCard('Créez votre profil pour être trouvé par les sportifs de votre ville.')}<button class="btn alt" data-act="settings">Réglages</button></div>`; return; }
+  if (!S.user) { el.innerHTML = `<div class="pad"><h1>Profil</h1>${loginCard('Créez votre profil pour être trouvé par les sportifs de votre ville.')}${installCard()}<button class="btn alt" data-act="settings">Réglages</button></div>`; return; }
   const p = S.me;
   if (!p) { el.innerHTML = '<div class="pad"><div class="note">Chargement du profil…</div></div>'; return; }
-  const favs = Object.keys(db.favs).filter(id => db.favs[id]);
+  const fv = favs(), favIds = Object.keys(fv).filter(id => fv[id]);
   el.innerHTML = `<div style="padding:24px 16px;background:var(--green);color:#fff;display:flex;flex-direction:column;gap:14px">
-      <div style="display:flex;align-items:center;gap:16px"><span class="avatar big">${initials(personName(p))}</span><div style="min-width:0"><h1>${esc(personName(p))}</h1><div>@${esc(p.username)}${p.city ? ' · ' + esc(p.city) : ''}</div></div></div>
+      <div style="display:flex;align-items:center;gap:16px">${avatarHtml(personName(p), p.avatar_url, true)}<div style="min-width:0"><h1>${esc(personName(p))}</h1><div>@${esc(p.username)}${p.city ? ' · ' + esc(p.city) : ''}</div></div></div>
       <div>${esc(p.bio || 'Présentez-vous en une phrase pour trouver des partenaires.')}</div>
       <button class="btn lime" data-act="edit-profile">Modifier le profil</button></div>
     <div class="pad"><h3>Sports pratiqués</h3>
@@ -1066,7 +1167,8 @@ function renderProfile() {
       <h3>Disponibilités</h3>
       <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px">${DAYS.map((d, i) => `<div style="padding:8px 0;border-radius:12px;text-align:center;font-size:13px;font-weight:700;background:${p.dispo[i] ? 'var(--green)' : 'var(--surface)'};color:${p.dispo[i] ? '#fff' : 'var(--muted)'}">${d}<div style="font-size:11px;font-weight:500">${SLOTS[p.dispo[i]]}</div></div>`).join('')}</div>
       <h3>Lieux favoris</h3>
-      ${favs.length ? favs.map(id => { const pl = placeById(id); return pl ? placeItem(pl) : `<div class="item"><span class="grow"><div class="t">${esc(db.favs[id].name)}</div><div class="s">Hors de la zone affichée</div></span></div>`; }).join('') : '<div class="note">Aucun lieu en favori.</div>'}
+      ${favIds.length ? favIds.map(id => { const pl = placeById(id); return pl ? placeItem(pl) : `<button class="item" data-act="fav-show" data-id="${id}"><span class="grow"><div class="t">${esc(fv[id].name)}</div><div class="s">Hors de la zone affichée · voir sur la carte</div></span>${ico('next')}</button>`; }).join('') : '<div class="note">Aucun lieu en favori.</div>'}
+      ${installCard()}
       <button class="btn alt" data-act="settings">Réglages et compte</button></div>`;
 }
 function openEditProfile() {
@@ -1079,6 +1181,7 @@ function pageEditProfile() {
   return {
     title: 'Modifier le profil',
     body: `<form class="pad" data-form="profile">
+      <div style="display:flex;align-items:center;gap:14px">${avatarHtml(p.display_name || S.me.username, S.me.avatar_url, true)}<label class="btn alt small" style="cursor:pointer">Changer la photo<input type="file" accept="image/*" data-upload="avatar" hidden></label></div>
       <label class="field">Nom affiché<input id="pf-name" name="name" type="text" maxlength="60" required value="${esc(p.display_name)}" placeholder="Prénom et initiale"></label>
       <label class="field">Pseudo<input id="pf-user" name="user" type="text" maxlength="30" required pattern="[a-z0-9_]{3,30}" value="${esc(p.username)}"><span class="note" style="font-weight:400">3 à 30 caractères : lettres minuscules, chiffres ou _</span></label>
       <label class="field">Ville<input id="pf-city" name="city" type="text" maxlength="60" value="${esc(p.city)}"></label>
@@ -1112,6 +1215,7 @@ function pageSettings(a) {
     body: `<div class="pad">
       ${S.user ? `<div class="card"><div class="label">Compte</div><div class="t">${esc(S.user.email || '')}</div><button class="btn small alt" data-act="logout" style="margin-top:6px">Se déconnecter</button></div>` : loginCard('Vous n\'êtes pas connecté.')}
       <div class="card"><div class="label">Position</div><div class="t">${esc(src)}</div><div class="row" style="margin-top:6px"><button class="btn small" data-act="geo-allow">Utiliser mon GPS</button><button class="btn small alt" data-act="geo-change">Choisir une ville</button></div></div>
+      <div class="card"><div class="label">Apparence</div><div class="chips wrap" style="margin-top:4px">${[['auto', 'Automatique'], ['light', 'Clair'], ['dark', 'Sombre']].map(o => `<button class="chip${(db.settings.theme || 'auto') === o[0] ? ' on' : ''}" data-act="theme" data-id="${o[0]}">${o[1]}</button>`).join('')}</div></div>
       <div class="card"><div class="label">Rayon de recherche des lieux</div><div class="chips wrap" style="margin-top:4px">${[1000, 2000, 5000, 10000].map(r => `<button class="chip${db.settings.radius === r ? ' on' : ''}" data-act="radius" data-id="${r}">${fmtDist(r)}</button>`).join('')}</div></div>
       <form class="card" data-form="apikey"><div class="label">Assistant : clé d'IA (facultatif)</div>
         <div class="note">Collez une clé API Anthropic pour que l'assistant rédige ses réponses et cherche sur Internet. La clé reste sur cet appareil. À n'utiliser que pour vos tests : dans l'appli finale, elle sera gardée côté serveur.</div>
@@ -1226,7 +1330,7 @@ function showTab(id) {
   if (id === 'social') { renderSocial(); refreshConvs(); }
   if (id === 'profile') renderProfile();
 }
-const PAGES = { assistant: pageAssistant, place: pagePlace, 'new-session': pageNewSession, event: pageEvent, member: pageMember, chat: pageChat, 'edit-profile': pageEditProfile, settings: pageSettings, auth: pageAuth, newpass: pageNewPass, report: pageReport };
+const PAGES = { assistant: pageAssistant, place: pagePlace, 'new-session': pageNewSession, event: pageEvent, member: pageMember, chat: pageChat, 'edit-profile': pageEditProfile, settings: pageSettings, auth: pageAuth, newpass: pageNewPass, report: pageReport, filters: pageFilters, review: pageReview, propose: pagePropose, info: pageInfo };
 function openPage(type, args) { S.stack.push({ type, args: args || {} }); renderPage(); }
 function back() { S.stack.pop(); renderPage(); refreshTab(); }
 function refreshTab() { if (S.tab === 'sessions') renderSessions(); if (S.tab === 'social') renderSocial(); if (S.tab === 'profile') renderProfile(); if (S.tab === 'map') renderSheet(); if (S.tab === 'routes') renderRoutes(); }
@@ -1239,7 +1343,7 @@ function renderPage() {
   if (p.scrollEnd) { const b = $('.pagebody', el); b.scrollTop = b.scrollHeight; }
 }
 const topArgs = () => (S.stack[S.stack.length - 1] || {}).args || {};
-const reloadTop = () => { const a = topArgs(); Object.keys(a).forEach(k => { if (!['id', 'mode', 'placeId', 'routeId', 'routeName', 'routeStart'].includes(k)) delete a[k]; }); renderPage(); };
+const reloadTop = () => { const a = topArgs(); Object.keys(a).forEach(k => { if (!['id', 'mode', 'placeId', 'routeId', 'routeName', 'routeStart', 'type', 'at'].includes(k)) delete a[k]; }); renderPage(); };
 
 // ---------- actions ----------
 const ACT = {
@@ -1254,7 +1358,23 @@ const ACT = {
   place: id => openPage('place', { id }),
   ask: (id, el) => ask(el.dataset.q),
   'widen-ask': async (id, el) => { db.settings.radius = 10000; save(); S.fetchedAt = null; await loadPlaces(); ask(el.dataset.q); },
-  fav: id => { const p = placeById(id); if (db.favs[id]) delete db.favs[id]; else db.favs[id] = { name: p.name }; save(); renderPage(); toast(db.favs[id] ? 'Ajouté aux favoris' : 'Retiré des favoris'); },
+  fav: id => toggleFav(id),
+  'fav-show': id => { const f = favs()[id]; if (f && f.lat != null) { showTab('map'); map.setView([f.lat, f.lon], 17); toast('Le lieu est au centre de la carte'); } },
+  filters: () => openPage('filters'),
+  filter: id => { S.filters[id] = !S.filters[id]; renderChips(); drawPlaces(); renderSheet(); renderPage(); },
+  'filters-clear': () => { Object.keys(S.filters).forEach(k => { S.filters[k] = false; }); renderChips(); drawPlaces(); renderSheet(); renderPage(); },
+  explore: () => { db.settings.manual = { lat: 48.8566, lon: 2.3522 }; save(); $('#gate').hidden = true; setPosition(48.8566, 2.3522, 'ville', null, true); toast('Vous explorez Paris. Changez de ville dans Profil › Réglages.'); },
+  'share-place': id => { const p = placeById(id); if (p) shareLink(p.name, `${p.name} sur Sport local`, placeHash(p)); },
+  'share-event': id => { const ev = topArgs().ev; shareLink(ev && ev.title ? ev.title : 'Session', ev && ev.title ? `Rejoins la session « ${ev.title} » sur Sport local` : 'Session sur Sport local', 'session/' + id); },
+  review: id => openPage('review', { placeId: id }),
+  'review-star': id => { const a = topArgs(); const f = $('[data-form="review"]'); a.draft = f ? f.elements.comment.value : ''; a.rating = +id; renderPage(); const f2 = $('[data-form="review"]'); if (f2 && a.draft != null) f2.elements.comment.value = a.draft; },
+  'review-del': async id => { const ok = await act(() => q(sb.from('spot_reviews').delete().eq('id', id))); if (ok !== undefined) { toast('Avis supprimé'); reloadTop(); } },
+  propose: () => openPage('propose'),
+  'report-spot': id => { const p = placeById(id); if (p) openPage('report', { id: p.userSpot ? p.dbId : p.osm, type: 'spot' }); },
+  theme: id => { db.settings.theme = id; save(); applyTheme(); renderPage(); },
+  install: async () => { if (!installEvent) return; installEvent.prompt(); await installEvent.userChoice.catch(() => {}); installEvent = null; refreshTab(); },
+  'waitlist-join': async id => { const ok = await act(() => q(sb.from('event_waitlist').insert({ event_id: id }))); if (ok !== undefined) toast('Vous êtes sur la liste d\'attente'); reloadTop(); },
+  'waitlist-leave': async id => { await act(() => q(sb.from('event_waitlist').delete().eq('event_id', id).eq('user_id', S.user.id))); reloadTop(); },
   auth: id => openPage('auth', { mode: id }),
   'auth-switch': id => { const a = topArgs(); a.mode = id; a.msg = ''; renderPage(); },
   logout: async () => { await sb.auth.signOut(); S.stack = []; renderPage(); toast('Déconnecté'); },
@@ -1278,7 +1398,7 @@ const ACT = {
   invite: async (id, el) => {
     const ev = topArgs().ev; if (!ev) return;
     const conv = await act(() => q(sb.rpc('start_direct_conversation', { p_other: id })));
-    if (conv && await sendMessage(conv, `Je t'invite à ma session « ${ev.title} », ${fmtWhen(ev.starts_at)}${ev.place_name ? ', ' + ev.place_name : ''}. Tu la trouveras dans l'onglet Sessions.`)) toast('Invitation envoyée');
+    if (conv && await sendMessage(conv, `Je t'invite à ma session « ${ev.title} », ${fmtWhen(ev.starts_at)}${ev.place_name ? ', ' + ev.place_name : ''} : ${SITE_URL}#session/${ev.id}`)) toast('Invitation envoyée');
   },
   social: id => { S.social = id; renderSocial(); if (id === 'messages') refreshConvs(); },
   member: id => openPage('member', { id }),
@@ -1322,21 +1442,377 @@ const FORMS = {
   newpass: async f => { const ok = await act(async () => { const r = await sb.auth.updateUser({ password: f.elements.pass.value }); if (r.error) throw r.error; return true; }); if (ok) { toast('Mot de passe modifié'); back(); } },
   msg: async f => { const v = f.elements.msg.value.trim(); if (!v) return; f.elements.msg.value = ''; if (!await sendMessage(f.dataset.id, v)) f.elements.msg.value = v; },
   session: f => submitSession(f),
-  report: async f => { const ok = await act(() => q(sb.from('reports').insert({ target_type: 'profile', target_id: f.dataset.id, reason: f.elements.reason.value.trim() }))); if (ok !== undefined) { toast('Signalement envoyé, merci'); back(); } },
+  report: async f => { const ok = await act(() => q(sb.from('reports').insert({ target_type: f.dataset.type || 'profile', target_id: f.dataset.id, reason: f.elements.reason.value.trim() }))); if (ok !== undefined) { toast('Signalement envoyé, merci'); back(); } },
   profile: () => saveProfile(),
   apikey: f => { db.settings.apiKey = f.elements.key.value.trim(); S.aiHistory = []; save(); toast(db.settings.apiKey ? 'Clé enregistrée : l\'assistant utilise l\'IA' : 'Clé retirée : assistant sans IA'); },
-  'save-route': f => { if (S.route) saveRoute(f.elements.name.value.trim()); }
+  'save-route': f => { if (S.route) saveRoute(f.elements.name.value.trim()); },
+  review: f => submitReview(f),
+  propose: f => submitPropose(f)
 };
 document.addEventListener('submit', e => {
   const f = e.target.closest('[data-form]'); if (!f) return;
   e.preventDefault(); FORMS[f.dataset.form](f);
 });
 document.addEventListener('input', e => { if (e.target.id === 'social-search') onSearchInput(e.target.value); });
+document.addEventListener('change', e => {
+  const el = e.target.closest('[data-upload]'); if (!el || !el.files || !el.files[0]) return;
+  const file = el.files[0]; el.value = '';
+  if (!/^image\//.test(file.type)) { toast('Choisissez une image (photo JPEG ou PNG).'); return; }
+  if (el.dataset.upload === 'avatar') uploadAvatar(file); else uploadSpotPhoto(file, el.dataset.id);
+});
+
+// =====================================================================
+// 12. LOT 1 : ouvert maintenant, filtres, météo, partage, avis, photos,
+//     lieux proposés, favoris sur le compte, thème, installation
+// =====================================================================
+
+// ---------- ouvert maintenant (horaires OpenStreetMap courants) ----------
+const OH_DAYS = { Su: 0, Mo: 1, Tu: 2, We: 3, Th: 4, Fr: 5, Sa: 6 };
+const OH_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+// Renvoie true (ouvert), false (fermé) ou null (horaires absents ou trop complexes).
+function openState(h, now) {
+  if (!h) return null;
+  now = now || new Date();
+  h = h.trim();
+  if (/^24\/7$/.test(h)) return true;
+  const today = now.getDay(), minutes = now.getHours() * 60 + now.getMinutes(), month = now.getMonth();
+  let state = null, parsedAny = false;
+  for (let rule of h.split(/\s*;\s*/)) {
+    rule = rule.trim();
+    if (!rule) continue;
+    const mm = rule.match(/^([A-Z][a-z]{2})(?:\s*-\s*([A-Z][a-z]{2}))?\s+(.*)$/);
+    if (mm && OH_MONTHS.includes(mm[1]) && (!mm[2] || OH_MONTHS.includes(mm[2]))) {
+      const a = OH_MONTHS.indexOf(mm[1]), b = mm[2] ? OH_MONTHS.indexOf(mm[2]) : a;
+      const inside = a <= b ? month >= a && month <= b : month >= a || month <= b;
+      parsedAny = true;
+      if (!inside) continue;
+      rule = mm[3];
+    }
+    const dm = rule.match(/^((?:Mo|Tu|We|Th|Fr|Sa|Su|PH)(?:\s*[-,]\s*(?:Mo|Tu|We|Th|Fr|Sa|Su|PH))*)?\s*(.*)$/);
+    if (!dm) return null;
+    let days = null;
+    if (dm[1]) {
+      days = new Set();
+      dm[1].split(/\s*,\s*/).forEach(part => {
+        const [x, y] = part.split(/\s*-\s*/);
+        if (!(x in OH_DAYS)) return;
+        if (!y) { days.add(OH_DAYS[x]); return; }
+        if (!(y in OH_DAYS)) return;
+        for (let d = OH_DAYS[x], n = 0; n < 7; d = (d + 1) % 7, n++) { days.add(d); if (d === OH_DAYS[y]) break; }
+      });
+      if (!days.size) continue;                       // règle des seuls jours fériés : ignorée
+    }
+    const rest = dm[2].trim();
+    const applies = !days || days.has(today);
+    if (/^(off|closed)$/i.test(rest)) { parsedAny = true; if (applies) state = false; continue; }
+    if (/^open$/i.test(rest)) { parsedAny = true; if (applies) state = true; continue; }
+    const spans = rest.split(/\s*,\s*/).map(s => s.match(/^(\d{1,2}):(\d{2})\s*-\s*(\d{1,2}):(\d{2})\+?$/));
+    if (!rest || spans.some(s => !s)) return null;    // « sunrise-sunset », semaines… : on ne devine pas
+    parsedAny = true;
+    if (!applies) continue;
+    state = spans.some(s => {
+      const from = +s[1] * 60 + +s[2], to = +s[3] * 60 + +s[4];
+      return to > from ? minutes >= from && minutes < to : minutes >= from || minutes < to;
+    });
+  }
+  if (!parsedAny) return null;
+  return state === null ? false : state;
+}
+const openLabel = p => { const o = openState(p.hours); return o === true ? 'Ouvert maintenant' : o === false ? 'Fermé' : ''; };
+
+// ---------- traductions des informations OpenStreetMap ----------
+const SURFACE_FR = { asphalt: 'Bitume', concrete: 'Béton', paved: 'Revêtu', unpaved: 'Non revêtu', grass: 'Gazon', artificial_turf: 'Gazon synthétique', clay: 'Terre battue', sand: 'Sable', tartan: 'Tartan (piste)', wood: 'Parquet', acrylic: 'Résine', decoturf: 'Résine', rubber: 'Sol souple', gravel: 'Gravier', fine_gravel: 'Gravillons', compacted: 'Stabilisé', dirt: 'Terre', ground: 'Terre', earth: 'Terre', paving_stones: 'Pavés', sett: 'Pavés', metal: 'Métal', carpet: 'Moquette', tiles: 'Carrelage', water: 'Eau', ice: 'Glace', synthetic: 'Synthétique', hard: 'Dur', grass_paver: 'Dalles gazon' };
+const surfaceFr = s => s ? s.split(';').map(x => SURFACE_FR[x.trim()] || x.trim().replace(/_/g, ' ')).join(', ') : '';
+
+// ---------- filtres ----------
+S.filters = { open: false, free: false, indoor: false, lit: false, wheel: false };
+const FILTERS = [['open', 'Ouvert maintenant'], ['free', 'Gratuit'], ['indoor', 'Couvert'], ['lit', 'Éclairé'], ['wheel', 'Accessible en fauteuil']];
+const activeFilters = () => FILTERS.filter(f => S.filters[f[0]]).length;
+function passFilters(p) {
+  const f = S.filters;
+  if (f.open && openState(p.hours) !== true) return false;
+  if (f.free && !(p.free === true || (p.free == null && ['pitch', 'fitness_station', 'track'].includes(p.kind) && p.access !== 'customers'))) return false;
+  if (f.indoor && !p.indoor) return false;
+  if (f.lit && !p.lit) return false;
+  if (f.wheel && !p.wheelchair) return false;
+  return true;
+}
+function pageFilters() {
+  return {
+    title: 'Filtres',
+    body: `<div class="pad">
+      <div class="label">Afficher seulement les lieux</div>
+      <div class="chips wrap">${FILTERS.map(f => `<button class="chip${S.filters[f[0]] ? ' on' : ''}" data-act="filter" data-id="${f[0]}" aria-pressed="${!!S.filters[f[0]]}">${f[1]}</button>`).join('')}</div>
+      <div class="note">« Ouvert maintenant » et « Accessible en fauteuil » ne retiennent que les lieux dont ces informations sont connues.</div>
+      <div class="label">Rayon de recherche</div>
+      <div class="chips wrap">${[1000, 2000, 5000, 10000].map(r => `<button class="chip${db.settings.radius === r ? ' on' : ''}" data-act="radius" data-id="${r}">${fmtDist(r)}</button>`).join('')}</div>
+      <div class="row"><button class="btn alt" data-act="filters-clear">Tout effacer</button><button class="btn" data-act="back">Voir ${visiblePlaces().length} lieux</button></div>
+    </div>`
+  };
+}
+
+// ---------- météo (Open-Meteo, sans clé) ----------
+const WX = { 0: 'Ciel dégagé', 1: 'Plutôt dégagé', 2: 'Partiellement nuageux', 3: 'Couvert', 45: 'Brouillard', 48: 'Brouillard givrant', 51: 'Bruine légère', 53: 'Bruine', 55: 'Bruine forte', 56: 'Bruine verglaçante', 57: 'Bruine verglaçante', 61: 'Pluie faible', 63: 'Pluie', 65: 'Forte pluie', 66: 'Pluie verglaçante', 67: 'Pluie verglaçante', 71: 'Neige faible', 73: 'Neige', 75: 'Forte neige', 77: 'Grésil', 80: 'Averses', 81: 'Averses', 82: 'Fortes averses', 85: 'Averses de neige', 86: 'Averses de neige', 95: 'Orage', 96: 'Orage avec grêle', 99: 'Orage avec grêle' };
+const wxCache = {};
+async function weather(lat, lon) {
+  const key = lat.toFixed(2) + ',' + lon.toFixed(2);
+  if (wxCache[key] && Date.now() - wxCache[key].at < 15 * 60000) return wxCache[key].data;
+  const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat.toFixed(4)}&longitude=${lon.toFixed(4)}&current=temperature_2m,weather_code,wind_speed_10m&hourly=temperature_2m,precipitation_probability,weather_code&forecast_days=7&timezone=auto`);
+  if (!r.ok) throw new Error('météo indisponible');
+  const data = await r.json();
+  wxCache[key] = { at: Date.now(), data };
+  return data;
+}
+function wxNowText(w) {
+  const c = w && w.current; if (!c) return '';
+  return `${Math.round(c.temperature_2m)} °C · ${WX[c.weather_code] || 'Météo inconnue'} · vent ${Math.round(c.wind_speed_10m)} km/h`;
+}
+function wxAtText(w, iso) {
+  const h = w && w.hourly; if (!h) return '';
+  const d = new Date(iso), pad = n => String(n).padStart(2, '0');
+  const key = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:00`;
+  const i = h.time.indexOf(key);
+  if (i < 0) return '';
+  return `${Math.round(h.temperature_2m[i])} °C · ${WX[h.weather_code[i]] || ''} · ${h.precipitation_probability[i] ?? 0} % de risque de pluie`;
+}
+
+// ---------- partage par lien ----------
+const placeHash = p => 'lieu/' + (p.userSpot ? 'user/' + p.dbId : p.osm) + '@' + p.lat.toFixed(5) + ',' + p.lon.toFixed(5);
+async function shareLink(title, text, hash) {
+  const url = SITE_URL + '#' + hash;
+  try { if (navigator.share) { await navigator.share({ title, text, url }); return; } }
+  catch (e) { if (e && e.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(url); toast('Lien copié : collez-le dans un message'); }
+  catch (e) { openPage('info', { title: 'Lien à partager', text: url }); }
+}
+function pageInfo(a) { return { title: a.title, body: `<div class="pad"><div class="card"><div class="hours" style="user-select:all">${esc(a.text)}</div></div></div>` }; }
+async function openFromHash() {
+  const h = decodeURIComponent(location.hash.replace(/^#/, ''));
+  if (!h) return;
+  history.replaceState(null, '', location.pathname + location.search);
+  let m = h.match(/^session\/([0-9a-f-]{36})$/);
+  if (m) { openPage('event', { id: m[1] }); return; }
+  m = h.match(/^lieu\/(node|way|relation|user)\/([0-9a-f-]+)@(-?[\d.]+),(-?[\d.]+)$/);
+  if (!m) return;
+  const lat = +m[3], lon = +m[4];
+  map.setView([lat, lon], 17);
+  let el = null;
+  try {
+    if (m[1] === 'user') {
+      const row = await q(sb.from('spots').select('id,osm_tags,location').eq('id', m[2]).single());
+      el = { type: 'user', id: row.id, lat, lon, tags: row.osm_tags || {}, dbId: row.id };
+    } else {
+      const j = await fetchOverpass(`[out:json][timeout:25];${m[1]}(${m[2]});out center tags;`);
+      el = j && j.elements && j.elements[0];
+    }
+  } catch (e) { /* lien invalide ou lieu supprimé */ }
+  const p = el && parsePlace(el);
+  if (!p) { toast('Ce lieu est introuvable.'); return; }
+  if (!placeById(p.id)) { p.dist = S.pos ? haversine(S.pos, p) : null; S.places.push(p); }
+  openPage('place', { id: p.id });
+}
+
+// ---------- photos (réduites avant envoi) ----------
+async function shrinkImage(file, max) {
+  const img = await createImageBitmap(file);
+  const s = Math.min(1, max / Math.max(img.width, img.height));
+  const c = document.createElement('canvas');
+  c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+  c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+  return new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error('image illisible')), 'image/jpeg', 0.85));
+}
+const publicUrl = (bucket, path) => sb.storage.from(bucket).getPublicUrl(path).data.publicUrl;
+function avatarHtml(name, url, big) {
+  const cls = 'avatar' + (big ? ' big' : '');
+  return url ? `<img class="${cls}" src="${esc(url)}" alt="" loading="lazy" style="object-fit:cover">` : `<span class="${cls}">${initials(name)}</span>`;
+}
+async function uploadAvatar(file) {
+  if (!S.user) return;
+  toast('Envoi de la photo…');
+  const ok = await act(async () => {
+    const blob = await shrinkImage(file, 400);
+    const path = `${S.user.id}/avatar-${Date.now()}.jpg`;
+    const up = await sb.storage.from('avatars').upload(path, blob, { contentType: 'image/jpeg' });
+    if (up.error) throw up.error;
+    await q(sb.from('profiles').update({ avatar_url: publicUrl('avatars', path) }).eq('id', S.user.id));
+    await loadMe(); return true;
+  });
+  if (ok) { toast('Photo de profil mise à jour'); renderPage(); refreshTab(); }
+}
+
+// ---------- fiche en base : avis et photos ----------
+const spotRef = p => p.userSpot ? p.dbId : p.osm;
+async function loadSpot(p) {
+  const rows = await q(sb.rpc('spot_summary', { p_ref: spotRef(p) }));
+  const sum = rows && rows[0];
+  if (!sum) return { spotId: null, avg: null, count: 0, reviews: [], photos: [] };
+  p.dbId = sum.spot_id;
+  const [reviews, photos] = await Promise.all([
+    q(sb.rpc('spot_reviews_list', { p_spot: sum.spot_id })),
+    q(sb.from('spot_photos').select('id,storage_path,uploaded_by').eq('spot_id', sum.spot_id).order('created_at', { ascending: false }).limit(24))
+  ]);
+  return { spotId: sum.spot_id, avg: sum.avg_rating, count: sum.reviews_count, reviews, photos };
+}
+async function ensureSpot(p) {
+  if (p.dbId) return p.dbId;
+  p.dbId = await q(sb.rpc('ensure_osm_spot', { p_ref: p.osm, p_name: p.name, p_lat: p.lat, p_lng: p.lon }));
+  return p.dbId;
+}
+const stars = n => '★★★★★'.slice(0, Math.round(n)) + '☆☆☆☆☆'.slice(0, 5 - Math.round(n));
+function spotSection(p, a) {
+  if (!sb) return '';
+  const sp = need(a, 'spot', () => loadSpot(p));
+  if (!sp) return '<h3>Avis et photos</h3><div class="note">Chargement…</div>';
+  if (sp.error) return '<h3>Avis et photos</h3><div class="note">Avis et photos indisponibles pour le moment.</div>';
+  const mine = sp.reviews.find(r => r.is_mine);
+  const photos = sp.photos.length ? `<div class="photos">${sp.photos.map(ph => `<a href="${esc(publicUrl('spot-photos', ph.storage_path))}" target="_blank" rel="noopener"><img src="${esc(publicUrl('spot-photos', ph.storage_path))}" alt="Photo de ${esc(p.name)}" loading="lazy"></a>`).join('')}</div>` : '<div class="note">Pas encore de photo.</div>';
+  const upload = S.user ? `<label class="btn alt small" style="cursor:pointer">Ajouter une photo<input type="file" accept="image/*" data-upload="spot" data-id="${p.id}" hidden></label>` : '';
+  const reviews = sp.reviews.length ? sp.reviews.slice(0, 20).map(r => `<div class="card"><div style="display:flex;justify-content:space-between;gap:8px"><b>${esc(r.author_name || 'Membre')}</b><span aria-label="${r.rating} sur 5" style="color:var(--link);letter-spacing:1px">${stars(r.rating)}</span></div>${r.comment ? `<div class="hours">${esc(r.comment)}</div>` : ''}<div class="s">${new Date(r.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}${r.is_mine ? ` · <button class="linkbtn" data-act="review-del" data-id="${r.id}">supprimer mon avis</button>` : ''}</div></div>`).join('') : '<div class="note">Aucun avis pour l\'instant. Soyez le premier.</div>';
+  return `<h3>Avis${sp.count ? ` · ${String(sp.avg).replace('.', ',')} / 5 (${sp.count})` : ''}</h3>
+    ${reviews}
+    <button class="btn alt small" data-act="${S.user ? 'review' : 'auth'}" data-id="${S.user ? p.id : 'signup'}">${mine ? 'Modifier mon avis' : 'Donner mon avis'}</button>
+    <h3>Photos</h3>${photos}${upload}`;
+}
+function pageReview(a) {
+  const p = placeById(a.placeId);
+  if (!p) return { title: 'Avis', body: '<div class="pad"><div class="note">Lieu introuvable.</div></div>' };
+  const top = S.stack.find(s => s.type === 'place' && s.args.id === a.placeId);
+  const mine = top && top.args.spot && top.args.spot.reviews ? top.args.spot.reviews.find(r => r.is_mine) : null;
+  if (a.rating == null) a.rating = mine ? mine.rating : 5;
+  return {
+    title: 'Mon avis',
+    body: `<form class="pad" data-form="review" data-id="${p.id}" data-mine="${mine ? mine.id : ''}">
+      <div><div class="label">Votre avis sur</div><div class="t">${esc(p.name)}</div></div>
+      <div class="field">Note : ${a.rating} / 5<div class="row">${[1, 2, 3, 4, 5].map(n => `<button type="button" class="chip${n <= a.rating ? ' on' : ''}" data-act="review-star" data-id="${n}" aria-label="${n} sur 5">${n} ★</button>`).join('')}</div></div>
+      <label class="field">Commentaire (facultatif)<textarea id="rv-comment" name="comment" rows="4" maxlength="1000" placeholder="État du terrain, affluence, conseils…">${esc(mine ? mine.comment || '' : '')}</textarea></label>
+      <button class="btn" type="submit">Publier mon avis</button></form>`
+  };
+}
+async function submitReview(f) {
+  const p = placeById(f.dataset.id), a = topArgs();
+  const comment = f.elements.comment.value.trim() || null;
+  const ok = await act(async () => {
+    const spotId = await ensureSpot(p);
+    if (f.dataset.mine) await q(sb.from('spot_reviews').update({ rating: a.rating, comment }).eq('id', f.dataset.mine));
+    else await q(sb.from('spot_reviews').insert({ spot_id: spotId, rating: a.rating, comment }));
+    return true;
+  });
+  if (ok) { toast('Avis publié, merci'); S.stack.pop(); reloadTop(); }
+}
+async function uploadSpotPhoto(file, placeId) {
+  const p = placeById(placeId); if (!p || !S.user) return;
+  toast('Envoi de la photo…');
+  const ok = await act(async () => {
+    const spotId = await ensureSpot(p);
+    const blob = await shrinkImage(file, 1280);
+    const path = `${S.user.id}/${spotId}-${Date.now()}.jpg`;
+    const up = await sb.storage.from('spot-photos').upload(path, blob, { contentType: 'image/jpeg' });
+    if (up.error) throw up.error;
+    await q(sb.from('spot_photos').insert({ spot_id: spotId, storage_path: path }));
+    return true;
+  });
+  if (ok) { toast('Photo ajoutée, merci'); reloadTop(); }
+}
+
+// ---------- proposer un lieu manquant ----------
+const SLUG_OSM = { football: 'soccer', basket: 'basketball', tennis: 'tennis', padel: 'padel', rugby: 'rugby', handball: 'handball', volley: 'volleyball', badminton: 'badminton', running: 'running', athletisme: 'athletics', natation: 'swimming', velo: 'cycling', musculation: 'fitness', street_workout: 'calisthenics', boxe: 'boxing', arts_martiaux: 'martial_arts', escalade: 'climbing', yoga: 'yoga', danse: 'dance', skate: 'skateboard', golf: 'golf', equitation: 'equestrian' };
+const PLACE_TYPES = [['pitch', 'Terrain'], ['fitness_station', 'Aire de fitness / street workout'], ['sports_hall', 'Gymnase'], ['fitness_centre', 'Salle de sport'], ['track', 'Piste'], ['swimming_pool', 'Piscine'], ['', 'Autre lieu de pratique']];
+function categoryOf(leisure, sport) {
+  if (sport === 'soccer') return 'stade_football';
+  if (sport === 'rugby') return 'stade_rugby';
+  if (sport === 'tennis') return 'court_tennis';
+  if (sport === 'boxing') return 'salle_boxe';
+  if (leisure === 'fitness_station' || sport === 'calisthenics') return 'street_workout';
+  if (leisure === 'track' || sport === 'athletics') return 'piste_athletisme';
+  if (leisure === 'fitness_centre' || sport === 'fitness') return 'salle_sport';
+  return 'autre';
+}
+function pagePropose(a) {
+  if (!S.user) return { title: 'Proposer un lieu', body: `<div class="pad">${loginCard('Connectez-vous pour ajouter un lieu manquant.')}</div>` };
+  if (!a.at) { const c = map.getCenter(); a.at = { lat: c.lat, lon: c.lng }; }
+  return {
+    title: 'Proposer un lieu',
+    body: `<form class="pad" data-form="propose">
+      <div class="banner">Le lieu sera placé au centre de la carte (${a.at.lat.toFixed(5)}, ${a.at.lon.toFixed(5)}). Pour le déplacer, revenez en arrière, centrez la carte sur le lieu, puis rouvrez ce formulaire.</div>
+      <label class="field">Nom du lieu<input id="pp-name" name="name" type="text" required minlength="2" maxlength="120" placeholder="City stade du parc"></label>
+      <label class="field">Type<select id="pp-type" name="type">${PLACE_TYPES.map(t => `<option value="${t[0]}">${t[1]}</option>`).join('')}</select></label>
+      <label class="field">Sport principal<select id="pp-sport" name="sport"><option value="">Plusieurs ou non précisé</option>${S.sports.map(s => `<option value="${esc(s.slug)}">${esc(s.name)}</option>`).join('')}</select></label>
+      <label class="check"><input type="checkbox" name="free"> Gratuit</label>
+      <label class="check"><input type="checkbox" name="lit"> Éclairé le soir</label>
+      <label class="check"><input type="checkbox" name="wheel"> Accessible en fauteuil</label>
+      <button class="btn" type="submit">Ajouter ce lieu</button>
+      <div class="note">Votre proposition apparaît aussitôt sur la carte, avec la mention « Proposé par un membre ».</div></form>`
+  };
+}
+async function submitPropose(f) {
+  const a = topArgs(), name = f.elements.name.value.trim();
+  const leisure = f.elements.type.value, sport = SLUG_OSM[f.elements.sport.value] || '';
+  const tags = { name };
+  if (leisure) tags.leisure = leisure; else tags.sport = sport || 'multi';
+  if (sport) tags.sport = sport;
+  if (f.elements.free.checked) tags.fee = 'no';
+  if (f.elements.lit.checked) tags.lit = 'yes';
+  if (f.elements.wheel.checked) tags.wheelchair = 'yes';
+  const ok = await act(() => q(sb.from('spots').insert({ name, category: categoryOf(leisure, sport), location: point(a.at), osm_tags: tags, is_free: f.elements.free.checked || null, has_lighting: f.elements.lit.checked || null })));
+  if (ok === undefined) return;
+  toast('Lieu ajouté, merci !');
+  writeCache([]); S.fetchedAt = null; back(); loadPlaces();
+}
+
+// ---------- favoris (sur le compte quand on est connecté) ----------
+S.accFavs = null;
+const favs = () => (S.user && S.accFavs) ? S.accFavs : db.favs;
+async function loadAccountFavs() {
+  if (!S.user) { S.accFavs = null; return; }
+  const rows = await act(() => q(sb.from('favorites').select('place_ref,name,lat,lng')));
+  if (!rows) return;
+  S.accFavs = {};
+  rows.forEach(r => { S.accFavs[r.place_ref] = { name: r.name, lat: r.lat, lon: r.lng }; });
+  // Les favoris enregistrés sur l'appareil avant la connexion rejoignent le compte.
+  const local = Object.keys(db.favs).filter(id => db.favs[id] && db.favs[id].lat != null && !S.accFavs[id]);
+  if (local.length) {
+    const ins = await act(() => q(sb.from('favorites').insert(local.map(id => ({ place_ref: id, name: db.favs[id].name.slice(0, 160), lat: db.favs[id].lat, lng: db.favs[id].lon })))));
+    if (ins !== undefined) { local.forEach(id => { S.accFavs[id] = db.favs[id]; }); db.favs = {}; save(); }
+  }
+  if (S.tab === 'profile') renderProfile();
+}
+async function toggleFav(id) {
+  const p = placeById(id); if (!p) return;
+  const f = favs(), on = !!f[id];
+  if (S.user && S.accFavs) {
+    const ok = await act(() => on ? q(sb.from('favorites').delete().eq('place_ref', id)) : q(sb.from('favorites').insert({ place_ref: id, name: p.name.slice(0, 160), lat: p.lat, lng: p.lon })));
+    if (ok === undefined) return;
+    if (on) delete S.accFavs[id]; else S.accFavs[id] = { name: p.name, lat: p.lat, lon: p.lon };
+  } else {
+    if (on) delete db.favs[id]; else db.favs[id] = { name: p.name, lat: p.lat, lon: p.lon };
+    save();
+  }
+  renderPage(); toast(on ? 'Retiré des favoris' : 'Ajouté aux favoris');
+}
+
+// ---------- thème clair / sombre ----------
+function applyTheme() {
+  const t = db.settings.theme || 'auto';
+  if (t === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
+}
+
+// ---------- appli installable ----------
+let installEvent = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installEvent = e; if (S.tab === 'profile') renderProfile(); });
+const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+function installCard() {
+  if (isStandalone()) return '';
+  if (installEvent) return '<button class="btn alt" data-act="install">Installer l\'appli sur cet appareil</button>';
+  if (/iphone|ipad|ipod/i.test(navigator.userAgent)) return '<div class="card"><div class="label">Installer l\'appli</div><div class="s">Dans Safari, touchez le bouton Partager, puis « Sur l\'écran d\'accueil ».</div></div>';
+  return '';
+}
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
 
 // ---------- démarrage ----------
 if (typeof L === 'undefined') {
   $('#app').innerHTML = '<div class="pad"><h1>Connexion requise</h1><div>La carte n\'a pas pu être chargée. Vérifiez votre connexion Internet puis rechargez la page.</div></div>';
 } else {
+  applyTheme();
   initMaps(); renderChips(); showTab('map');
   if (db.settings.manual) setPosition(db.settings.manual.lat, db.settings.manual.lon, 'ville', null, true);
   else if (db.settings.geoOk) startGeo();
@@ -1351,6 +1827,8 @@ if (typeof L === 'undefined') {
     });
     loadSports().catch(() => {});
   }
+  if (location.hash.length > 1) openFromHash();
+  window.addEventListener('hashchange', openFromHash);
 }
 </script>
 </body>
