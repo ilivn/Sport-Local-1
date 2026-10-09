@@ -1,7 +1,7 @@
 // Sport local — service worker : l'appli s'ouvre même sans réseau.
 // Réseau d'abord pour les fichiers du site (toujours la dernière version),
 // copie locale en secours. Les données (Supabase, cartes, météo) ne sont pas mises en cache ici.
-const CACHE = 'sport-local-v3';
+const CACHE = 'sport-local-v4';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (e) => {
