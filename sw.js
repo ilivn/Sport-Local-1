@@ -1,8 +1,24 @@
 // Sport local — service worker : l'appli s'ouvre même sans réseau.
 // Réseau d'abord pour les fichiers du site (toujours la dernière version),
 // copie locale en secours. Les données (Supabase, cartes, météo) ne sont pas mises en cache ici.
-const CACHE = 'sport-local-v4';
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
+const CACHE = 'sport-local-v5';
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png',
+  './css/style.css',
+  './js/00-base.js',
+  './js/01-position.js',
+  './js/02-lieux.js',
+  './js/03-carte.js',
+  './js/04-assistant.js',
+  './js/05-fiche-lieu.js',
+  './js/06-compte.js',
+  './js/07-sessions.js',
+  './js/08-amis-messagerie.js',
+  './js/09-profil.js',
+  './js/10-parcours.js',
+  './js/11-navigation.js',
+  './js/12-lieux-extras.js',
+  './js/13-activites-groupes-notifications.js',
+  './js/14-demarrage.js'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
