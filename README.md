@@ -18,7 +18,8 @@ Application web pour trouver les lieux de sport autour de soi et rencontrer des 
 - Notifications (demandes d'ami, places libérées, sessions annulées, rappels)
 - Mode sombre, version ordinateur, installable sur téléphone (PWA)
 - **Confidentialité GPS** : les 200 premiers et derniers mètres d'un tracé partagé sont masqués par défaut (le domicile n'apparaît pas), la distance et la durée restent exactes
-- **Hors connexion** : les lieux des 3 dernières zones consultées restent disponibles sans réseau
+- **Recherche de lieux rapide** : affichage instantané depuis les zones déjà chargées (même après un petit déplacement), démarrage sur la dernière position connue puis position approximative en attendant le GPS, réponse Supabase allégée et triée par distance (`mise-a-jour-4.sql`)
+- **Hors connexion** : les lieux des 5 dernières zones consultées restent disponibles sans réseau
 
 ## Fichiers
 
@@ -33,6 +34,7 @@ Application web pour trouver les lieux de sport autour de soi et rencontrer des 
 | `amis.sql` | Mise à jour n° 1 : amis, messagerie, sports |
 | `mise-a-jour-2.sql` | Mise à jour n° 2 : favoris, avis, photos, liste d'attente |
 | `mise-a-jour-3.sql` | Mise à jour n° 3 : activités GPS, statistiques, groupes, notifications |
+| `mise-a-jour-4.sql` | Mise à jour n° 4 : recherche de lieux plus rapide (facultative) |
 | `import-lieux.mjs` + `.github/workflows/import-lieux.yml` | Import hebdomadaire des lieux OpenStreetMap dans Supabase |
 
 ## Tests de sécurité

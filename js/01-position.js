@@ -14,7 +14,7 @@ function showGate(msg) {
     <button class="btn lime" data-act="geo-allow">Me localiser</button>
     <form data-form="geo-city" class="send"><input id="gate-city" name="city" type="text" placeholder="Ou tapez une ville : Lyon, Lille…" aria-label="Ville" autocomplete="off"><button type="submit" aria-label="Utiliser cette ville">${ico('next')}</button></form>
     <button class="btn alt small" data-act="explore">Explorer sans me localiser</button>
-    <div class="note">Votre position sert seulement à chercher autour de vous. Elle n'est ni enregistrée ni partagée.</div>
+    <div class="note">Votre position sert seulement à chercher autour de vous. Elle reste sur votre appareil et n'est jamais partagée.</div>
   </div>`;
 }
 let watchId = null;
@@ -22,6 +22,15 @@ function startGeo() {
   if (!navigator.geolocation) { showGate('Ce navigateur ne donne pas accès à la position. Indiquez une ville.'); return; }
   if (watchId != null) navigator.geolocation.clearWatch(watchId);
   let first = true;
+  // Démarrage immédiat : dernière position connue (moins d'un jour), puis position rapide
+  // approximative (réseau/Wi-Fi) en attendant le GPS précis, qui prend parfois plusieurs secondes.
+  const last = db.settings.lastPos;
+  if (last && Date.now() - last.at < 864e5 && !S.pos) { $('#gate').hidden = true; setPosition(last.lat, last.lon, 'gps', null, true); }
+  navigator.geolocation.getCurrentPosition(p => {
+    if (!first) return;                                   // le GPS précis est déjà arrivé
+    $('#gate').hidden = true;
+    setPosition(p.coords.latitude, p.coords.longitude, 'gps', p.coords.accuracy, !S.pos);
+  }, () => {}, { enableHighAccuracy: false, maximumAge: 10 * 60e3, timeout: 4000 });
   watchId = navigator.geolocation.watchPosition(p => {
     db.settings.geoOk = true; db.settings.manual = null; save();
     $('#gate').hidden = true;
@@ -47,6 +56,7 @@ async function useCity(name) {
 }
 function setPosition(lat, lon, source, acc, recenter) {
   S.pos = { lat, lon }; S.posSource = source; S.acc = acc;
+  if (source === 'gps') { db.settings.lastPos = { lat: +lat.toFixed(3), lon: +lon.toFixed(3), at: Date.now() }; save(); }
   S.places.forEach(p => { p.dist = haversine(S.pos, p); });
   S.places.sort((a, b) => a.dist - b.dist);
   drawMe();

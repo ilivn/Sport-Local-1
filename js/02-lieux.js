@@ -20,14 +20,14 @@ const SHOP = { sports: 'Magasin de sport', bicycle: 'Magasin de vélos', outdoor
 
 function overpassQuery(lat, lon, radius) {
   const a = `(around:${radius},${lat.toFixed(5)},${lon.toFixed(5)})`;
-  return `[out:json][timeout:40];(
+  return `[out:json][timeout:25];(
 nwr${a}[leisure~"^(pitch|stadium|sports_centre|sports_hall|fitness_centre|fitness_station|track|swimming_pool|water_park|ice_rink|golf_course|miniature_golf|horse_riding|dance|bowling_alley)$"];
 nwr${a}[sport];
 nwr${a}[shop~"^(sports|bicycle|outdoor|golf|fishing|scuba_diving|ski|surf)$"];
 nwr${a}[club=sport];
 nwr${a}[amenity=dojo];
 nwr${a}[healthcare=physiotherapist];
-);out center tags 600;`;
+);out tags center qt 600;`;   // « qt » : pas de tri côté serveur, réponse plus rapide
 }
 function parsePlace(el) {
   const t = el.tags || {}, lat = el.lat != null ? el.lat : (el.center || {}).lat, lon = el.lon != null ? el.lon : (el.center || {}).lon;
@@ -64,13 +64,14 @@ const CACHE_KEY = 'sportlocal.cache.v2';
 function readCache() { try { return JSON.parse(localStorage.getItem(CACHE_KEY) || '[]') || []; } catch (e) { return []; } }
 function writeCache(list) { try { localStorage.setItem(CACHE_KEY, JSON.stringify(list)); } catch (e) { /* mémoire pleine : on s'en passe */ } }
 const wait = ms => new Promise(r => setTimeout(r, ms));
+const RPC_MISSING = new Set();   // fonctions Supabase absentes de la base
 async function fetchOverpass(q) {
   // Les serveurs publics sont souvent saturés : on interroge les deux en même temps,
   // on garde la première réponse valable, et on réessaie jusqu'à 4 fois.
   for (let attempt = 0; attempt < 4; attempt++) {
     S.loadAttempt = attempt + 1; renderSheet();
     const ctls = OVERPASS.map(() => new AbortController());
-    const timer = setTimeout(() => ctls.forEach(c => c.abort()), 50000);
+    const timer = setTimeout(() => ctls.forEach(c => c.abort()), 30000);
     try {
       const j = await Promise.any(OVERPASS.map((url, i) => fetch(url, { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, signal: ctls[i].signal })
         .then(async r => { if (!r.ok) throw new Error('HTTP ' + r.status); const d = await r.json(); if (!d || !Array.isArray(d.elements)) throw new Error('réponse vide'); return d; })));
@@ -115,13 +116,22 @@ function applyPlaces(places, center) {
   S.fetchedAt = center;
   drawPlaces(); renderSheet();
 }
+// Une zone en cache « couvre » la recherche si son cercle contient entièrement le nouveau cercle.
+const covers = (c, center, radius) => c.radius >= radius && haversine(c, center) + radius <= c.radius + 150;
+const withinRadius = (places, center, radius) => places.filter(p => haversine(center, p) <= radius + 50);
 async function loadPlaces() {
   if (!S.pos || S.loading) return;
   const center = { lat: S.pos.lat, lon: S.pos.lon }, radius = db.settings.radius;
-  const cached = readCache().find(c => c.radius === radius && haversine(c, center) < 300 && Date.now() - c.at < 7 * 864e5);
-  if (cached) {
-    applyPlaces(cached.places, center);
-    if (Date.now() - cached.at < 6 * 3600e3) return;          // assez récent : pas besoin de recharger
+  const cache = readCache();
+  // 1) Affichage instantané : une zone déjà chargée qui couvre la recherche (même si on s'est déplacé).
+  const cover = cache.filter(c => covers(c, center, radius) && Date.now() - c.at < 7 * 864e5).sort((a, b) => b.at - a.at)[0];
+  if (cover) {
+    applyPlaces(withinRadius(cover.places, center, radius), center);
+    if (Date.now() - cover.at < 6 * 3600e3) return;          // assez récent : pas besoin de recharger
+  } else {
+    // Sinon, on montre déjà les lieux connus de la partie commune avec une zone voisine, en attendant le reste.
+    const near = cache.filter(c => haversine(c, center) < c.radius + radius).sort((a, b) => haversine(a, center) - haversine(b, center))[0];
+    if (near) { const part = withinRadius(near.places, center, radius); if (part.length) applyPlaces(part, center); }
   }
   // Hors connexion : on affiche les derniers lieux enregistrés pour la zone, même anciens.
   if (navigator.onLine === false) {
@@ -134,8 +144,15 @@ async function loadPlaces() {
   // 1) Lieux de la base de l'appli (importés + proposés par les membres).
   let rows = null;
   if (sb) {
-    try { rows = await q(sb.rpc('places_near', { p_lat: center.lat, p_lng: center.lon, p_radius_m: radius })); }
-    catch (e) { try { rows = await q(sb.rpc('osm_spots_near', { p_lat: center.lat, p_lng: center.lon, p_radius_m: radius })); } catch (e2) { rows = null; } }
+    // places_near_light (mise à jour n° 4) renvoie moins de données et les lieux les plus proches d'abord.
+    // Si elle n'est pas encore installée, on se souvient de l'échec pour ne plus la tenter.
+    // On charge 500 m de plus que le rayon affiché : un petit déplacement reste couvert par le cache, sans réseau.
+    const args = { p_lat: center.lat, p_lng: center.lon, p_radius_m: Math.min(radius + 500, 20000) };
+    for (const fn of ['places_near_light', 'places_near', 'osm_spots_near']) {
+      if (RPC_MISSING.has(fn)) continue;
+      try { rows = await q(sb.rpc(fn, args)); break; }
+      catch (e) { rows = null; if (e && (e.code === 'PGRST202' || /function|could not find/i.test(e.message || ''))) RPC_MISSING.add(fn); }
+    }
   }
   const toEl = r => {
     if (r.source === 'user') return { type: 'user', id: r.id, lat: r.lat, lon: r.lng, tags: r.tags || {}, dbId: r.id };
@@ -147,8 +164,8 @@ async function loadPlaces() {
   if (osmRows.length) {
     S.loading = false;
     const places = cleanPlaces(osmRows.map(toEl).concat(userEls));
-    saveCache(center, radius, places);   // disponible ensuite hors connexion
-    applyPlaces(places, center);
+    saveCache(center, Math.min(radius + 500, 20000), places);   // disponible ensuite hors connexion
+    applyPlaces(withinRadius(places, center, radius), center);
     return;
   }
   // 2) Sinon, recherche en direct sur OpenStreetMap (+ lieux proposés par les membres).
@@ -162,9 +179,9 @@ async function loadPlaces() {
   saveCache(center, radius, places);
   applyPlaces(places, center);
 }
-// Garde les 3 dernières zones consultées sur l'appareil (utilisées aussi hors connexion).
+// Garde les 5 dernières zones consultées sur l'appareil (utilisées aussi hors connexion).
 function saveCache(center, radius, places) {
-  const keep = readCache().filter(c => !(c.radius === radius && haversine(c, center) < 300)).slice(0, 2);
+  const keep = readCache().filter(c => !(c.radius === radius && haversine(c, center) < 300)).slice(0, 4);
   writeCache([{ lat: center.lat, lon: center.lon, radius, at: Date.now(), places: places.map(p => Object.assign({}, p, { dist: null })) }].concat(keep));
 }
 window.addEventListener('online', () => { if (S.pos) loadPlaces(); });
